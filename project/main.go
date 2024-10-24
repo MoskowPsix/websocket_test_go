@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -78,6 +81,7 @@ func (c *ClientSock) read() {
 		if err_str != nil {
 			break
 		}
+		log.Printf("f%", message)
 		switch message.Message {
 		case "static":
 			var clients []string
@@ -151,7 +155,7 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request, room *Room) {
 func main() {
 	room := newRoom()
 	go room.run()
-
+	http.HandleFunc("/", serveHTML)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		handleWebSocket(w, r, room)
 	})
@@ -160,4 +164,21 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Println("Ошибка при запуске сервера:", err)
 	}
+}
+
+func serveHTML(w http.ResponseWriter, r *http.Request) {
+	// Определяем путь к HTML файлу
+	htmlFilePath := filepath.Join("home.html")
+
+	// Читаем содержимое HTML файла
+	data, err := ioutil.ReadFile(htmlFilePath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Устанавливаем заголовок Content-Type
+	w.Header().Set("Content-Type", "text/html")
+	// Отправляем содержимое HTML файла
+	w.Write(data)
 }

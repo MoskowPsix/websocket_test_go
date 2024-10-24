@@ -5,8 +5,11 @@
 <script type="text/javascript">
 window.onload = function () {
     var conn;
+    var userId = 'client_' + getRandomInt(1000, 9999);
     var msg = document.getElementById("msg");
     var log = document.getElementById("log");
+
+    document.querySelector('.results').innerHTML = "your user_id: "+userId;
 
     function appendLog(item) {
         var doScroll = log.scrollTop > log.scrollHeight - log.clientHeight - 1;
@@ -23,13 +26,18 @@ window.onload = function () {
         if (!msg.value) {
             return false;
         }
-        conn.send(msg.value);
+        conn.send(JSON.stringify({
+            "message": msg.value,
+            "to": String(to.value),
+            "from": String(userId),
+        }));
         msg.value = "";
+        to.value = "";
         return false;
     };
 
     if (window["WebSocket"]) {
-        conn = new WebSocket("ws://" + document.location.host + "/ws");
+        conn = new WebSocket("ws://" + document.location.host + "/ws?id=" + userId);
         conn.onclose = function (evt) {
             var item = document.createElement("div");
             item.innerHTML = "<b>Connection closed.</b>";
@@ -49,6 +57,11 @@ window.onload = function () {
         appendLog(item);
     }
 };
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 </script>
 <style type="text/css">
 html {
@@ -77,6 +90,7 @@ body {
 }
 
 #form {
+    display: flex;
     padding: 0 0.5em 0 0.5em;
     margin: 0;
     position: absolute;
@@ -93,6 +107,8 @@ body {
 <form id="form">
     <input type="submit" value="Send" />
     <input type="text" id="msg" size="64" autofocus />
+    <input type="text" id="to" size="64" autofocus />
+    <div class="results"></div>
 </form>
 </body>
 </html>
