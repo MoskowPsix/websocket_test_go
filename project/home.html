@@ -31,8 +31,16 @@ window.onload = function () {
             "to": String(to.value),
             "from": String(userId),
         }));
+        var item = document.createElement("div");
+
+        item.innerText = JSON.stringify({
+            "message": msg.value,
+            "to": String(to.value),
+            "from": String(userId),
+        });
         msg.value = "";
-        to.value = "";
+        appendLog(item);
+
         return false;
     };
 
@@ -44,6 +52,7 @@ window.onload = function () {
             appendLog(item);
         };
         conn.onmessage = function (evt) {
+            console.log(evt)
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
                 var item = document.createElement("div");
